@@ -1,0 +1,80 @@
+
+esphome:
+  name: "modbus-develop-esp32s"
+  friendly_name: Modbus Develop Esp32s
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+# Enable logging
+logger:
+  logs:
+    component: ERROR
+  level: DEBUG  # 设置日志级别为DEBUG或更高级别
+# Enable Home Assistant API
+api:
+
+ota:
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Esphome-Web-Ebf7A4"
+    password: "87654321"
+
+web_server:
+  port: 80
+
+captive_portal:
+
+uart:
+  id: mbus
+  tx_pin: 17
+  rx_pin: 16
+  baud_rate: 9600
+  stop_bits: 1
+  debug:
+
+cover:
+  - platform: template
+    name: "Livingroom Curtain"
+    device_class: curtain
+    open_action: #OK
+      - uart.write: [0x55, 0x03, 0x07, 0x03, 0x01, 0x58, 0xB9]
+    close_action: #OK
+      - uart.write: [0x55, 0x03, 0x07, 0x03, 0x02, 0x18, 0xB8]
+    stop_action:  #目前不起作用
+      - uart.write: [0x55, 0x03, 0x07, 0x03, 0x03, 0x2C, 0x4B]
+    optimistic: true
+
+
+# 發送命令
+# 開
+# 55 03 07 03 01 AD 8A
+
+# 關
+# 55 03 07 03 02 ED 8B
+
+# 停止
+# 55 03 07 03 03 2C 4B
+
+# 控制百分比(1E=30%為例)
+# 55 03 07 03 04 1E C8 E5
+
+
+# 讀命令
+# 目前位置百分比
+# 55 03 07 01 02 01 2B 4D
+
+# 反饋
+# 设备返回 
+# 55 12 34 01 01 1E* 6A 75
+# 55 12 34 01 01 FF* AA 3D
+
+# *当设备有设置行程时，设备返回当前行程（0x00~0x64），0x00 表示完全关闭，0x64 表示完全打开。
+# *当设备没有设置行程时，设备返回 0xFF
